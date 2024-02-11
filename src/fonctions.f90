@@ -145,23 +145,23 @@ real(rp) function h_l(l,t)
 	integer, intent(in) :: l
 	real(rp), intent(in) :: t
 	
-	integer :: m, k, ite
+	integer :: m, k, ite, bitnum
 	real(rp) :: epsi1, epsi2, epsi3
 	logical :: bool
 	
 	! on définit la fonction selon la valeur de l
 	select case (l)
 	case (1)
-		if ( x < T ) then
+		if ( t < T ) then
 			h_l = 1._rp
 		else 
 			h_l = 0._rp
 		endif
 	
 	case (2)
-		if ( x < 0.5_rp ) then
+		if ( t < 0.5_rp ) then
 			h_l = 1._rp
-		elseif ( x >= 0.5_rp .and. x < T ) then
+		elseif ( t >= 0.5_rp .and. t < T ) then
 			h_l = -1._rp
 		else 
 			h_l = 0._rp
@@ -189,9 +189,9 @@ real(rp) function h_l(l,t)
 		epsi2 = 0.0_rp + T*(k + 0.5_rp)/m
 		epsi3 = 0.0_rp + T*(k + 1.0_rp)/m
 		
-		if ( x >= epsi1 .and. x < epsi2 ) then 
+		if ( t >= epsi1 .and. t < epsi2 ) then 
 			h_l = 1.0_rp
-		elseif ( x >= epsi2 .and. x < epsi3 ) then
+		elseif ( t >= epsi2 .and. t < epsi3 ) then
 			h_l = -1.0_rp
 		else 
 			h_l = 0._rp
@@ -210,7 +210,7 @@ real(rp) function P_1i(i,x)
 	implicit none
 	integer, intent(in) :: i
 	real(rp), intent(in) :: x
-	integer :: m, k, ite
+	integer :: m, k, ite, bitnum
 	real(rp) :: epsi1, epsi2, epsi3
 	logical :: bool
 	
@@ -218,7 +218,7 @@ real(rp) function P_1i(i,x)
 	select case (i)
 	
 	case (1)
-		P_2i = (x + 1) ! x - a
+		P_1i = (x + 1) ! x - a
 		
 	case default
 		! calcul des epsilon 1,2,3
@@ -248,8 +248,10 @@ real(rp) function P_1i(i,x)
 		else 
 			P_1i = 0
 		endif
+	
+	end select
 		
-		return
+	return
 end function P_1i
 
 ! fonction P2,i(x)
@@ -260,7 +262,7 @@ real(rp) function P_2i(i,x)
 	implicit none
 	integer, intent(in) :: i
 	real(rp), intent(in) :: x
-	integer :: m, k, ite
+	integer :: m, k, ite, bitnum
 	real(rp) :: epsi1, epsi2, epsi3
 	logical :: bool
 	
@@ -299,8 +301,10 @@ real(rp) function P_2i(i,x)
 		else 
 			P_2i = (epsi3 -epsi2)**2
 		endif
-		
-		return
+	
+	end select
+	
+	return
 end function P_2i
 
 
@@ -312,7 +316,7 @@ real(rp) function P_1l(l,t)
 	implicit none
 	integer, intent(in) :: l
 	real(rp), intent(in) :: t
-	integer :: m, k, ite
+	integer :: m, k, ite, bitnum
 	real(rp) :: epsi1, epsi2, epsi3
 	logical :: bool
 	
@@ -320,7 +324,7 @@ real(rp) function P_1l(l,t)
 	select case (l)
 	
 	case (1)
-		P_2i = (x + 1) ! x - a
+		P_1l = t  ! t - a
 		
 	case default
 		! calcul des epsilon 1,2,3
@@ -343,7 +347,7 @@ real(rp) function P_1l(l,t)
 		
 			
 		if ( t >= epsi1 .and. t < epsi2 ) then
-			P_1l = x - epsi1
+			P_1l = t - epsi1
 			
 		elseif ( t >= epsi2 .and. t < epsi3 ) then
 			P_1l = epsi3 - t
@@ -351,7 +355,9 @@ real(rp) function P_1l(l,t)
 			P_1l = 0
 		endif
 		
-		return
+	end select
+	
+	return
 end function P_1l
 
 
