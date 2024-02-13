@@ -1,0 +1,6 @@
+0.0		:: paramètre a
+0.001	:: paramètre epsilon
+1.0		:: T final
+0		:: info_u, permet le choix de u fonction exacte
+0		:: info_phi, choix de phi (dépendant de u fonction exacte )
+0		:: info_psi, choix de psi (dépendant de u fonction exacte )
