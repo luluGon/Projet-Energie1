@@ -25,6 +25,8 @@ subroutine gradconj(A, B, m, U, ite_max, erreur,ite)
 	integer 				:: i
 	real(rp)				:: alpha, beta, r0r0, r1r1
 	
+	
+	U(:) = 1._rp
 	AU = matmul(A,U)
 	do i=1, m
 		r(i) 	= B(i) - AU(i)
@@ -36,23 +38,28 @@ subroutine gradconj(A, B, m, U, ite_max, erreur,ite)
 		
 		AP = matmul(A,p)
 		r0r0 = dot_product(r,r)
-		alpha = r0r0/dot_product(p, AP)
-		do i =1,m
-			U(i) = U(i) + alpha*p(i)
-			r(i) = r(i) - alpha*AP(i)
-		end do
-		
-		r1r1 = dot_product(r,r)
-		
-		if ( r1r1< erreur*erreur) then
+		if ( abs(dot_product(p, AP) ) < epsilon(0._rp) ) then
+			Write(6,*) "pas possible d'utiliser grad_conj"
 			exit
+		else
+			alpha = r0r0/dot_product(p, AP)
+			do i =1,m
+				U(i) = U(i) + alpha*p(i)
+				r(i) = r(i) - alpha*AP(i)
+			end do
+		
+			r1r1 = dot_product(r,r)
+		
+			if ( r1r1< erreur*erreur) then
+				exit
+			end if
+		
+			beta = r1r1/r0r0
+		
+			do i=1, m
+				p(i) = r(i) + beta*p(i)
+			end do
 		end if
-		
-		beta = r1r1/r0r0
-		
-		do i=1, m
-			p(i) = r(i) + beta*p(i)
-		end do
 		
 		
 	end do
@@ -60,5 +67,23 @@ subroutine gradconj(A, B, m, U, ite_max, erreur,ite)
 	return 
 	
 end subroutine gradconj
+
+
+subroutine regul()
+	
+	implicit none
+	integer :: i
+	
+	trans_A = transpose(mat_A)
+	reg_A = matmul(trans_A, mat_A)
+	reg_C = matmul(trans_A, C)
+	
+	do i = 1, 4*M*M +2*M
+		reg_A(i,i) = reg_A(i,i) + mu
+	end do
+	
+	return
+
+end subroutine regul
 
 end module Operations_matrices

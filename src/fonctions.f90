@@ -23,6 +23,8 @@ real(rp) function u_ex(x,t)
 	case (0) 
 	
 		u_ex = 0.0_rp
+	case (1) 
+		u_ex = sin(2._rp*pi*x)
 		
 	end select 
 		
@@ -43,6 +45,8 @@ real(rp) function phi(x)
 	
 		case (0)
 			phi = 0.0_rp
+		case (1) 
+			phi = sin(2._rp*pi*x)
 			
 	end select 
 	
@@ -63,6 +67,8 @@ real(rp) function phi_sec(x)
 	
 		case (0)
 			phi_sec = 0.0_rp
+		case (1) 
+			phi_sec = -4._rp* pi*pi*sin(2*pi*x)
 			
 	end select 
 	
@@ -83,6 +89,8 @@ real(rp) function psi(x)
 	
 		case (0)
 			psi = 0.0_rp
+		case (1) 
+			psi = sin(2._rp*pi*x)
 			
 	end select 
 	
@@ -205,9 +213,9 @@ real(rp) function h_l(l,t)
 		
 		
 		! calcul de epsilon 1,2,3
-		epsi1 = 0.0_rp + T*k/m
-		epsi2 = 0.0_rp + T*(k + 0.5_rp)/m
-		epsi3 = 0.0_rp + T*(k + 1.0_rp)/m
+		epsi1 = 0.0_rp + Tf*k/m
+		epsi2 = 0.0_rp + Tf*(k + 0.5_rp)/m
+		epsi3 = 0.0_rp + Tf*(k + 1.0_rp)/m
 		
 		if ( t >= epsi1 .and. t < epsi2 ) then 
 			h_l = 1.0_rp
@@ -306,7 +314,7 @@ real(rp) function P_2i(i,x)
 		m = ishft(1, bitnum) 
 		k = i-1 - m
 		
-		epsi1 = -1.0_rp + 2._rp*k/m
+		epsi1 = -1.0_rp + 2._rp*(k+0._rp)/m
 		epsi2 = -1.0_rp + 2._rp*(k + 0.5_rp)/m
 		epsi3 = -1.0_rp + 2._rp*(k + 1.0_rp)/m
 		
@@ -330,7 +338,7 @@ end function P_2i
 
 ! fonction P_1l(t)
 ! argument1 : l entier naturel
-! argument2 : t réel entre 0 et T
+! argument2 : t réel entre 0 et Tfinal
 ! retourne P_1l(t) = intérale de 0 à t de hl(y)dy
 real(rp) function P_1l(l,t)
 	implicit none
@@ -360,9 +368,9 @@ real(rp) function P_1l(l,t)
 		m = ishft(1, bitnum) 
 		k = l-1 - m
 		
-		epsi1 = 0.0_rp + T*k/m
-		epsi2 = 0.0_rp + T*(k + 0.5_rp)/m
-		epsi3 = 0.0_rp + T*(k + 1.0_rp)/m
+		epsi1 = 0.0_rp + Tf*k/m
+		epsi2 = 0.0_rp + Tf*(k + 0.5_rp)/m
+		epsi3 = 0.0_rp + Tf*(k + 1.0_rp)/m
 		
 		
 			
@@ -379,13 +387,12 @@ real(rp) function P_1l(l,t)
 	
 	return
 end function P_1l
-!Source d'erreur possible: t et T interprété de la même façon
+
 
 !Subroutine qui calcule A, la matrice de taille 2M(2M+1)x2M(2M+1) de notre système linéaire
-SUBROUTINE Construction_A(Mat_A)
+SUBROUTINE Construction_A()
 
-REAL(rp),DIMENSION(2*M*(2*M+1),2*M*(2*M+1)),INTENT(OUT) :: Mat_A
-
+IMPLICIT NONE
 INTEGER :: K,L,i,PET_l,r,s
 REAL(rp),DIMENSION(2*M+1) :: meshX
 REAL(rp),DIMENSION(2*M) :: meshT
@@ -415,22 +422,21 @@ END DO
 RETURN
 
 END SUBROUTINE Construction_A
-
 !Subroutine qui calcule C, le vecteur de taille 2M(2M+1) de notre système linéaire
-SUBROUTINE Construction_C(C)
+SUBROUTINE Construction_C()
 
-REAL(rp),DIMENSION(2*M*(2*M+1)),INTENT(OUT) :: C
-
+IMPLICIT NONE
 REAL(rp),DIMENSION(2*M+1) :: meshX
 REAL(rp),DIMENSION(2*M) :: meshT
-INTEGER :: L,r
+INTEGER :: ite_x, ite_t
 
 CALL maillage(meshX,meshT)
 
-DO L=1,2*M*(2*M+1)
+DO ite_t = 1, 2*M
+	do ite_x = 1, 2*M+1
 	!indice pour repérer les x_r
-	r=1+(L-1)/2*M
-	C(L)=phi_sec(meshX(r))-phi_sec(-1._rp)+epsi*(phi_sec(1._rp)-phi_sec(-meshX(r)))
+	C(ite_t +(ite_x-1)*(2*M+1))=phi_sec(meshX(ite_x))-phi_sec(-1._rp)+epsi*(phi_sec(1._rp)-phi_sec(-meshX(ite_x)))
+	end do
 END DO
 
 RETURN

@@ -7,21 +7,31 @@ USE mod_mesh
 USE Operations_matrices
 
 
+
 implicit none
-
-REAL(rp),DIMENSION(2*M*(2*M+1),2*M*(2*M+1)) :: Mat_A
-REAL(rp),DIMENSION(2*M*(2*M+1)) :: C,U
-INTEGER :: ite
-
+integer :: i
 call lecture()
 
-CALL Construction_A(Mat_A)
 
-CALL Construction_C(C)
+allocate(Mat_A( (2*M)*(2*M+1) , (2*M)*(2*M+1) ) )
+allocate( C( (2*M)*(2*M+1) )  )
+allocate( U( (2*M)*(2*M+1) ) )
 
-CALL gradconj(Mat_A, C, 2*M*(2*M+1), U, 100, 0.001_rp,ite)
 
-PRINT*,'U=',U
+
+CALL Construction_A()
+
+CALL Construction_C()
+
+CALL regul()
+
+CALL gradconj(reg_A, reg_C, 2*M*(2*M+1), U, 100, 0.001_rp,ite)
+
+
+do i=1, (2*M)*(2*M+1)
+	Write(6,*) C(i)
+end do
+
 
 STOP
 
