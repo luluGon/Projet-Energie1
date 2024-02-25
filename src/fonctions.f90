@@ -2,7 +2,7 @@
 module fonctions
 
 use const_var
-USE mod_mesh
+USE mesh
 contains 
 
 
@@ -97,6 +97,30 @@ real(rp) function psi(x)
 	return 
 	
 end function psi
+
+
+! la fonction psi_sec(x) qui correspond à d²u/dx²(x,T)
+! argument : x reel entre -1 et 1
+! retourne psi_sec(x)
+! la fonction change selon le choix de info_psi
+! changeable dans le fichier init
+real(rp) function psi_sec(x)
+
+	implicit none
+	real(rp), intent(in) :: x
+	select case (info_psi)
+	
+		case (0)
+			psi_sec = 0.0_rp
+		case (1) 
+			psi_sec = -4*pi*sin(2._rp*pi*x)
+			
+	end select 
+	
+	return 
+	
+end function psi_sec
+
 
 ! fonction pour hi(x)
 ! argument 1 : i entier naturel
@@ -274,7 +298,7 @@ real(rp) function P_1i(i,x)
 		elseif ( x >= epsi2 .and. x < epsi3 ) then
 			P_1i = epsi3 - x
 		else 
-			P_1i = 0
+			P_1i = 0._rp
 		endif
 	
 	end select
@@ -319,7 +343,7 @@ real(rp) function P_2i(i,x)
 		epsi3 = -1.0_rp + 2._rp*(k + 1.0_rp)/m
 		
 		if ( x < epsi1) then
-			P_2i = 0
+			P_2i = 0._rp
 			
 		elseif ( x >= epsi1 .and. x < epsi2 ) then
 			P_2i = 0.5_rp*(x-epsi1)*(x-epsi1)
@@ -368,9 +392,9 @@ real(rp) function P_1l(l,t)
 		m = ishft(1, bitnum) 
 		k = l-1 - m
 		
-		epsi1 = 0.0_rp + Tf*k/m
-		epsi2 = 0.0_rp + Tf*(k + 0.5_rp)/m
-		epsi3 = 0.0_rp + Tf*(k + 1.0_rp)/m
+		epsi1 = Tf*k/m
+		epsi2 = Tf*(k + 0.5_rp)/m
+		epsi3 = Tf*(k + 1.0_rp)/m
 		
 		
 			
@@ -380,7 +404,7 @@ real(rp) function P_1l(l,t)
 		elseif ( t >= epsi2 .and. t < epsi3 ) then
 			P_1l = epsi3 - t
 		else 
-			P_1l = 0
+			P_1l = 0._rp
 		endif
 		
 	end select
@@ -388,59 +412,71 @@ real(rp) function P_1l(l,t)
 	return
 end function P_1l
 
-
-!Subroutine qui calcule A, la matrice de taille 2M(2M+1)x2M(2M+1) de notre système linéaire
-SUBROUTINE Construction_A()
-
-IMPLICIT NONE
-INTEGER :: K,L,i,PET_l,r,s
-REAL(rp),DIMENSION(2*M+1) :: meshX
-REAL(rp),DIMENSION(2*M) :: meshT
-
-CALL maillage(meshX,meshT)
-
-DO K=1,2*M*(2*M+1)
-	!indice pour repérer les x_r
-	r=1+(K-1)/(2*M)
-	!indice pour repérer les t_s
-	s=1+MOD(K-1,2*M)
+! fonction P2,l(t)
+! argument1 : i entier naturel 
+! argument2 : t real entre 0 et T
+! renvoie P2,l(x) = integral de 0 à t de P_2l(y)dy
+real(rp) function P_2l(l,t)
+	implicit none
+	integer, intent(in) :: l
+	real(rp), intent(in) :: t
+	integer :: m, k, ite, bitnum
+	real(rp) :: epsi1, epsi2, epsi3
+	logical :: bool
 	
-	DO L=1,4*M**2
-		!indice pour repérer les h_i et les P_2,i
-		i=1+(L-1)/(2*M)
-		!indice pour repérer les h_l et les P_1,l
-		PET_l=1+MOD(L-1,2*M)
-		Mat_A(K,L)=P_2i(i,meshX(r))*h_l(PET_l,meshT(s))+(h_i(i,-1._rp)+epsi*h_i(i,-meshX(r))-h_i(i,meshX(r)))*P_1l(PET_l,meshT(s))
-	END DO
-	DO L=1+4*M**2,2*M*(2*M+1)
-		!indice pour repérer les h_i
-		i=L-4*M**2
-		Mat_A(K,L)=h_i(i,-1._rp)-h_i(i,meshX(r))
-	END DO
-END DO
+	! disjonction de cas selon la valeur de l
+	select case (l)
+	
+	case (1)
+		P_2l = 0.5_rp*t*t ! (x-a)²/2
+		
+	case default
+		! calcul des epsilon 1,2,3
+		bool = .false.
+		ite = 0
+		
+		do while (bool .eqv. .false.) 
+			bitnum = 31 - ite
+			bool = btest(l-1, bitnum)
+			ite = ite + 1
+		end do
+		
+		m = ishft(1, bitnum) 
+		k = l-1 - m
+		
+		epsi1 = Tf*k/m
+		epsi2 = Tf*(k + 0.5_rp)/m
+		epsi3 = Tf*(k + 1.0_rp)/m
+		
+		if ( t < epsi1) then
+			P_2l = 0._rp
+			
+		elseif ( t >= epsi1 .and. t < epsi2 ) then
+			P_2l = 0.5_rp*(t-epsi1)*(t-epsi1)
+			
+		elseif ( t >= epsi2 .and. t < epsi3 ) then
+			P_2l = (epsi3 -epsi2)**2 - 0.5_rp*(epsi3 - t)**2
+		else 
+			P_2l = (epsi3 -epsi2)**2
+		endif
+	
+	end select
+	
+	return
+end function P_2l
 
-RETURN
-
-END SUBROUTINE Construction_A
-!Subroutine qui calcule C, le vecteur de taille 2M(2M+1) de notre système linéaire
-SUBROUTINE Construction_C()
-
-IMPLICIT NONE
-REAL(rp),DIMENSION(2*M+1) :: meshX
-REAL(rp),DIMENSION(2*M) :: meshT
-INTEGER :: ite_x, ite_t
-
-CALL maillage(meshX,meshT)
-
-DO ite_t = 1, 2*M
-	do ite_x = 1, 2*M+1
-	!indice pour repérer les x_r
-	C(ite_t +(ite_x-1)*(2*M+1))=phi_sec(meshX(ite_x))-phi_sec(-1._rp)+epsi*(phi_sec(1._rp)-phi_sec(-meshX(ite_x)))
-	end do
-END DO
-
-RETURN
-
-END SUBROUTINE
-
+real(rp) function R_il(r,s,i,l)
+	
+	implicit none
+	integer, intent(in) :: r,s,i,l
+	real(rp) :: x, t
+	
+	x = meshx(r)
+	t = mesht(s)
+	
+	R_il = (P_2i(i,x) - beta*P_2i(i,1._rp)/(1+beta))*(P_1l(l,t) - P_2l(l,Tf)/Tf) &
+	&- (h_i(i,x) -epsi*h_i(i,-x))*(P_2l(l,t)-t*P_2l(l,Tf)/Tf)
+	
+	return
+end function R_il
 end module fonctions

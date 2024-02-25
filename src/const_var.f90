@@ -8,10 +8,10 @@ INTEGER, PARAMETER :: rp=REAL64
 REAL(RP),PARAMETER :: pi = acos(-1.0_rp)
 
 
-REAL(rp) :: a, epsi, Tf, mu
+REAL(rp) :: a, epsi, Tf, mu, beta
 INTEGER :: info_u, info_phi, info_psi,M, ite
 
 REAL(rp), dimension(:,:), allocatable :: Mat_A, reg_A, trans_A
-REAL(rp), dimension(:), allocatable :: U,C, reg_C
+REAL(rp), dimension(:), allocatable :: U,C, reg_C, meshX, meshT
 
 end module const_var

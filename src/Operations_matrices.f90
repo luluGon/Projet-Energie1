@@ -29,8 +29,7 @@ subroutine gradconj(A, B, m, U, ite_max, erreur,ite)
 	U(:) = 1._rp
 	AU = matmul(A,U)
 	do i=1, m
-		r(i) 	= B(i) - AU(i)
-		U(i) 	= 0.0_rp
+		r(i) 	= B(i) - AU(i) 
 		p(i) 	= r(i)
 	end do
 	ite = 0

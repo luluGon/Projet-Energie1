@@ -3,12 +3,12 @@ FC := gfortran
 SRCDIR := src
 OBJDIR := obj
 MODDIR := mod
-SRC := $(SRCDIR)/const_var.f90 $(SRCDIR)/lecture_init.f90 $(SRCDIR)/mesh.f90 $(SRCDIR)/fonctions.f90 $(SRCDIR)/Operations_matrices.f90 $(SRCDIR)/main.f90
+SRC := $(SRCDIR)/const_var.f90 $(SRCDIR)/lecture_init.f90 $(SRCDIR)/mesh.f90 $(SRCDIR)/fonctions.f90 $(SRCDIR)/creation_mat.f90 $(SRCDIR)/Operations_matrices.f90 $(SRCDIR)/approche.f90 $(SRCDIR)/main.f90
 OBJ := $(patsubst $(SRCDIR)/%.f90,$(OBJDIR)/%.o,$(SRC))
 EXE := exe
 
 # Flags de compilation
-FCFLAGS :=  -O0
+FCFLAGS :=  -O0 
 MODFLAGS := -J$(MODDIR)
 
 # Règle de construction du programme

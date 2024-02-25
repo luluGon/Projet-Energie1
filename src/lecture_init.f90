@@ -8,6 +8,7 @@ subroutine lecture()
 
 	open(unit=19, file='init', status='unknown', action='read')
 		read(19,*) a
+		read(19,*) beta
 		read(19,*) epsi
 		read(19,*) Tf
 		read(19,*) info_u
